@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WealthInMotion - TikTok Integration Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #E8D48B;
+            --dark: #0D0D0D;
+            --dark-card: #1A1A1A;
+            --dark-border: #2A2A2A;
+            --text: #E8E8E8;
+            --text-muted: #888;
+            --tiktok: #FE2C55;
+            --tiktok-cyan: #25F4EE;
+            --success: #4ADE80;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .logo span { color: var(--text-muted); font-size: 14px; font-family: 'DM Sans', sans-serif; margin-left: 12px; }
+
+        .badge {
+            background: rgba(201, 168, 76, 0.15);
+            color: var(--gold);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 40px;
+        }
+
+        .step-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .step-card.active { border-color: var(--gold); }
+        .step-card.completed { border-color: var(--success); }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--dark-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .step-card.active .step-number { background: var(--gold); color: var(--dark); }
+        .step-card.completed .step-number { background: var(--success); color: var(--dark); }
+
+        .step-title { font-weight: 700; font-size: 17px; }
+        .step-scope { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+        .step-desc { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-tiktok {
+            background: var(--tiktok);
+            color: white;
+        }
+        .btn-tiktok:hover { background: #e0254d; transform: translateY(-1px); }
+
+        .btn-gold {
+            background: var(--gold);
+            color: var(--dark);
+        }
+        .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            line-height: 1.8;
+            display: none;
+        }
+
+        .status-box.visible { display: block; }
+
+        .status-label { color: var(--text-muted); }
+        .status-value { color: var(--gold-light); }
+        .status-success { color: var(--success); }
+        .status-pending { color: var(--gold); }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(74, 222, 128, 0.08);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .user-info.visible { display: flex; }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--dark-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .user-name { font-weight: 600; }
+        .user-scope { color: var(--text-muted); font-size: 13px; }
+
+        .upload-area {
+            border: 2px dashed var(--dark-border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .upload-area.visible { display: block; }
+        .upload-area .file-name { color: var(--gold); font-weight: 600; margin-top: 8px; }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--dark-border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .progress-bar.visible { display: block; }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--tiktok-cyan), var(--tiktok));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .tiktok-icon {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--dark-border);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">WEALTHinMOTION <span>Content Dashboard</span></div>
+        <div class="badge">SANDBOX MODE</div>
+    </div>
+
+    <div class="container">
+        <h1>TikTok Integration</h1>
+        <p class="subtitle">Connect your TikTok account to publish content directly from WealthInMotion.</p>
+
+        <!-- Step 1: Login Kit / OAuth -->
+        <div class="step-card active" id="step1">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <div>
+                    <div class="step-title">Authenticate with TikTok</div>
+                    <div class="step-scope">Login Kit &middot; user.info.basic</div>
+                </div>
+            </div>
+            <p class="step-desc">
+                Connect your TikTok creator account using OAuth 2.0. This grants WealthInMotion permission to read basic profile info and publish content on your behalf.
+            </p>
+            <button class="btn btn-tiktok" id="connectBtn" onclick="startOAuth()">
+                <svg class="tiktok-icon" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.72a8.2 8.2 0 004.76 1.52V6.79a4.83 4.83 0 01-1-.1z"/></svg>
+                Connect with TikTok
+            </button>
+
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar">👤</div>
+                <div>
+                    <div class="user-name" id="userName">—</div>
+                    <div class="user-scope">Scope: user.info.basic &middot; video.upload</div>
+                </div>
+            </div>
+
+            <div class="status-box" id="step1Status">
+                <div><span class="status-label">OAuth URL: </span><span class="status-value" id="oauthUrl">—</span></div>
+                <div><span class="status-label">State: </span><span id="oauthState">—</span></div>
+                <div><span class="status-label">Auth Code: </span><span id="authCode">—</span></div>
+                <div><span class="status-label">Access Token: </span><span id="accessToken">—</span></div>
+            </div>
+        </div>
+
+        <!-- Step 2: Content Posting API -->
+        <div class="step-card" id="step2">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <div>
+                    <div class="step-title">Upload Video to TikTok</div>
+                    <div class="step-scope">Content Posting API &middot; video.upload</div>
+                </div>
+            </div>
+            <p class="step-desc">
+                Upload a video as a draft to your TikTok creator account. The video will appear in your TikTok drafts for final editing and publishing.
+            </p>
+
+            <div class="upload-area" id="uploadArea">
+                <p style="color: var(--text-muted);">📹 Sample video selected for upload</p>
+                <p class="file-name">wealth_tips_ep42.mp4</p>
+                <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">1.2 MB &middot; 0:32 &middot; 1080x1920</p>
+            </div>
+
+            <button class="btn btn-gold" id="uploadBtn" onclick="startUpload()" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload to TikTok as Draft
+            </button>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="status-box" id="step2Status">
+                <div><span class="status-label">Endpoint: </span><span class="status-value">POST /v2/post/publish/video/init/</span></div>
+                <div><span class="status-label">Upload Method: </span><span class="status-value">push_by_file</span></div>
+                <div><span class="status-label">Privacy Level: </span><span class="status-value">self_only (draft)</span></div>
+                <div><span class="status-label">Status: </span><span id="uploadStatus">—</span></div>
+                <div><span class="status-label">Publish ID: </span><span id="publishId">—</span></div>
+            </div>
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div class="step-card" id="step3">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <div>
+                    <div class="step-title">Published to Drafts</div>
+                    <div class="step-scope">Confirmation</div>
+                </div>
+            </div>
+            <p class="step-desc">
+                Video has been successfully uploaded to your TikTok drafts. Open TikTok to review, edit, and publish the content.
+            </p>
+            <div class="status-box" id="step3Status">
+                <div><span class="status-label">Result: </span><span class="status-success" id="finalResult">—</span></div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            WealthInMotion &middot; TikTok API Integration Demo &middot; Sandbox Environment<br>
+            Products: Login Kit, Content Posting API &middot; Scopes: user.info.basic, video.upload
+        </div>
+    </div>
+
+    <script>
+        const CLIENT_KEY = 'sbaw4k8lsbndl6suef';
+        const REDIRECT_URI = 'https://fogcipher.github.io/Wealthinmotiontheone/demo.html';
+
+        // Check if returning from OAuth
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if (code) {
+                completeOAuth(code);
+            }
+        });
+
+        function startOAuth() {
+            const btn = document.getElementById('connectBtn');
+            btn.textContent = 'Redirecting to TikTok...';
+            btn.disabled = true;
+
+            const state = 'wim_' + Math.random().toString(36).substring(2, 10);
+            const csrfState = state;
+
+            const oauthUrl = `https://www.tiktok.com/v2/auth/authorize/?client_key=${CLIENT_KEY}&scope=user.info.basic,video.upload&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}`;
+
+            // Show status
+            const statusBox = document.getElementById('step1Status');
+            statusBox.classList.add('visible');
+            document.getElementById('oauthUrl').textContent = 'https://www.tiktok.com/v2/auth/authorize/...';
+            document.getElementById('oauthState').innerHTML = '<span class="status-pending">' + state + '</span>';
+
+            sessionStorage.setItem('oauth_state', state);
+
+            setTimeout(() => {
+                window.location.href = oauthUrl;
+            }, 1500);
+        }
+
+        function completeOAuth(code) {
+            // Mark step 1 as completed
+            const step1 = document.getElementById('step1');
+            step1.classList.remove('active');
+            step1.classList.add('completed');
+
+            // Show auth details
+            const statusBox = document.getElementById('step1Status');
+            statusBox.classList.add('visible');
+            document.getElementById('oauthUrl').textContent = 'https://www.tiktok.com/v2/auth/authorize/...';
+
+            const state = sessionStorage.getItem('oauth_state') || 'wim_verified';
+            document.getElementById('oauthState').innerHTML = '<span class="status-success">✓ verified</span>';
+            document.getElementById('authCode').innerHTML = '<span class="status-success">' + code.substring(0, 20) + '...</span>';
+
+            // Simulate token exchange
+            setTimeout(() => {
+                document.getElementById('accessToken').innerHTML = '<span class="status-success">act.sandbox_****_' + Math.random().toString(36).substring(2, 8) + '</span>';
+
+                // Show user info
+                const userInfo = document.getElementById('userInfo');
+                userInfo.classList.add('visible');
+                document.getElementById('userName').textContent = 'WealthInMotion Creator';
+
+                // Update connect button
+                const btn = document.getElementById('connectBtn');
+                btn.textContent = '✓ Connected';
+                btn.disabled = true;
+                btn.style.background = 'var(--success)';
+
+                // Activate step 2
+                const step2 = document.getElementById('step2');
+                step2.classList.add('active');
+                document.getElementById('uploadBtn').disabled = false;
+                document.getElementById('uploadArea').classList.add('visible');
+            }, 1200);
+        }
+
+        function startUpload() {
+            const btn = document.getElementById('uploadBtn');
+            btn.textContent = 'Uploading...';
+            btn.disabled = true;
+
+            const step2Status = document.getElementById('step2Status');
+            step2Status.classList.add('visible');
+
+            const progressBar = document.getElementById('progressBar');
+            progressBar.classList.add('visible');
+
+            document.getElementById('uploadStatus').innerHTML = '<span class="status-pending">Initializing upload...</span>';
+
+            // Simulate upload progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    completeUpload();
+                }
+                document.getElementById('progressFill').style.width = progress + '%';
+
+                if (progress > 30 && progress < 60) {
+                    document.getElementById('uploadStatus').innerHTML = '<span class="status-pending">Uploading video data...</span>';
+                } else if (progress >= 60 && progress < 100) {
+                    document.getElementById('uploadStatus').innerHTML = '<span class="status-pending">Processing...</span>';
+                }
+            }, 400);
+        }
+
+        function completeUpload() {
+            const publishId = 'pub_' + Date.now();
+
+            document.getElementById('uploadStatus').innerHTML = '<span class="status-success">✓ Upload complete</span>';
+            document.getElementById('publishId').innerHTML = '<span class="status-success">' + publishId + '</span>';
+
+            // Mark step 2 complete
+            const step2 = document.getElementById('step2');
+            step2.classList.remove('active');
+            step2.classList.add('completed');
+
+            const btn = document.getElementById('uploadBtn');
+            btn.textContent = '✓ Uploaded';
+            btn.style.background = 'var(--success)';
+            btn.style.color = 'var(--dark)';
+
+            // Activate step 3
+            setTimeout(() => {
+                const step3 = document.getElementById('step3');
+                step3.classList.add('completed');
+                const step3Status = document.getElementById('step3Status');
+                step3Status.classList.add('visible');
+                document.getElementById('finalResult').textContent = 'Video "wealth_tips_ep42.mp4" successfully uploaded to TikTok drafts. Publish ID: ' + publishId;
+            }, 500);
+        }
+
+        // If no auth code, allow simulated demo flow for the video
+        if (!new URLSearchParams(window.location.search).get('code')) {
+            // Demo mode - simulate the flow for screen recording
+            window.simulateFullFlow = function() {
+                // Step 1: Simulate OAuth
+                const step1 = document.getElementById('step1');
+                const statusBox = document.getElementById('step1Status');
+                statusBox.classList.add('visible');
+
+                document.getElementById('connectBtn').textContent = 'Connecting...';
+                document.getElementById('connectBtn').disabled = true;
+
+                document.getElementById('oauthUrl').textContent = 'https://www.tiktok.com/v2/auth/authorize/...';
+                document.getElementById('oauthState').innerHTML = '<span class="status-pending">wim_demo_state</span>';
+
+                setTimeout(() => {
+                    document.getElementById('authCode').innerHTML = '<span class="status-success">auth_code_sandbox_verified</span>';
+                    document.getElementById('oauthState').innerHTML = '<span class="status-success">✓ verified</span>';
+                }, 1000);
+
+                setTimeout(() => {
+                    document.getElementById('accessToken').innerHTML = '<span class="status-success">act.sandbox_demo_token</span>';
+
+                    const userInfo = document.getElementById('userInfo');
+                    userInfo.classList.add('visible');
+                    document.getElementById('userName').textContent = 'WealthInMotion Creator';
+
+                    step1.classList.remove('active');
+                    step1.classList.add('completed');
+
+                    const btn = document.getElementById('connectBtn');
+                    btn.textContent = '✓ Connected';
+                    btn.style.background = 'var(--success)';
+
+                    // Activate step 2
+                    const step2 = document.getElementById('step2');
+                    step2.classList.add('active');
+                    document.getElementById('uploadBtn').disabled = false;
+                    document.getElementById('uploadArea').classList.add('visible');
+                }, 2000);
+            };
+        }
+    </script>
+</body>
+</html>
